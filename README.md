@@ -1,39 +1,33 @@
 # 🔗 Encurtador de URL - OpenViglet
 
-Um encurtador de URL simples, gratuito e que funciona inteiramente no GitHub Pages. Não requer servidor backend - toda a funcionalidade é implementada no lado do cliente usando JavaScript e localStorage.
+Um encurtador de URL simples, gratuito e open source que funciona inteiramente no GitHub Pages com Jekyll. Agora com **processamento server-side** para redirecionamentos mais rápidos e confiáveis.
 
 ## ✨ Características
 
 - **Gratuito e Open Source**: Licenciado sob Apache 2.0
-- **Sem servidor necessário**: Funciona inteiramente no GitHub Pages
+- **Processamento Server-Side**: Jekyll gera páginas de redirecionamento individuais para cada URL
+- **Compatível com GitHub Pages**: Build automático com Jekyll
 - **Interface em Português**: Interface limpa e intuitiva
 - **QR Code automático**: Gera QR codes para URLs encurtadas
 - **Histórico local**: Mantém histórico das URLs encurtadas no navegador
 - **Responsivo**: Funciona em desktop e mobile
 - **URLs personalizadas**: Gera códigos aleatórios de 6 caracteres
+- **Redirecionamento rápido**: Usa meta-refresh e JavaScript para redirecionamento imediato
 - **Estatísticas básicas**: Contador de cliques para cada URL
 
-## 🚀 Como usar
+## 🏗️ Como Funciona (Jekyll)
 
-### Acesso online
-Visite: `https://openviglet.github.io/shortener`
-
-### Para encurtar uma URL:
-1. Cole a URL longa no campo de entrada
-2. Clique em "Encurtar"
-3. Copie a URL encurtada gerada
-4. Use o QR code se necessário
-
-### Para acessar uma URL encurtada:
-- Acesse a URL encurtada no navegador
-- Você será redirecionado automaticamente após 3 segundos
-- Ou clique em "Ir agora" para redirecionamento imediato
+1. **Adição de URLs**: URLs são adicionadas manualmente editando `data/urls.json`
+2. **Build Process**: Jekyll lê o arquivo JSON e gera páginas individuais para cada código curto
+3. **Redirecionamento**: Cada `/codigo` possui sua própria página HTML com redirecionamento automático
+4. **Interface**: A página principal permite gerar instruções para novas URLs
 
 ## 🛠️ Instalação local
 
 ### Pré-requisitos
-- Navegador web moderno
-- Servidor web local (opcional, para desenvolvimento)
+- Ruby 3.0+ 
+- Jekyll 4.0+
+- Git
 
 ### Executar localmente
 1. Clone o repositório:
@@ -42,22 +36,17 @@ git clone https://github.com/openviglet/shortener.git
 cd shortener
 ```
 
-2. Abra `index.html` no navegador ou execute um servidor local:
+2. Instale as dependências:
 ```bash
-# Python 3
-python -m http.server 8000
-
-# Python 2
-python -m SimpleHTTPServer 8000
-
-# Node.js (com http-server)
-npx http-server
-
-# PHP
-php -S localhost:8000
+bundle install
 ```
 
-3. Acesse `http://localhost:8000`
+3. Execute o Jekyll:
+```bash
+bundle exec jekyll serve
+```
+
+4. Acesse `http://localhost:4000/shortener/`
 
 ## 🏗️ Implantação no GitHub Pages
 
@@ -69,32 +58,49 @@ php -S localhost:8000
 5. Clique em "Save"
 6. Sua URL será: `https://seuusuario.github.io/shortener`
 
+O GitHub Actions irá automaticamente:
+- Instalar Ruby e Jekyll
+- Executar `bundle install`
+- Executar `bundle exec jekyll build`
+- Publicar os arquivos gerados
+
 ### Configuração personalizada:
 1. Edite `_config.yml` para ajustar a URL base
-2. Modifique `script.js` se necessário para URLs personalizadas
+2. Modifique `assets/js/script.js` se necessário para URLs personalizadas
 3. Faça commit e push das alterações
 
 ## 📁 Estrutura do projeto
 
 ```
 shortener/
+├── _layouts/           # Layouts Jekyll
+│   ├── default.html    # Layout principal
+│   └── redirect.html   # Layout para páginas de redirecionamento
+├── _plugins/           # Plugins Jekyll
+│   └── url_generator.rb # Gerador de páginas de redirecionamento
+├── assets/js/          # JavaScript assets
+│   └── script.js       # Lógica JavaScript principal
+├── data/               # Dados das URLs
+│   ├── urls.json       # Arquivo JSON com URLs encurtadas
+│   └── README.md       # Documentação dos dados
 ├── index.html          # Página principal
 ├── styles.css          # Estilos CSS
-├── script.js           # Lógica JavaScript
-├── 404.html           # Página de redirecionamento
-├── _config.yml        # Configuração Jekyll/GitHub Pages  
-├── README.md          # Documentação
-└── LICENSE            # Licença Apache 2.0
+├── _config.yml         # Configuração Jekyll
+├── Gemfile             # Dependências Ruby
+├── README.md           # Documentação
+└── LICENSE             # Licença Apache 2.0
 ```
 
 ## 🔧 Tecnologias utilizadas
 
+- **Jekyll 4.0+**: Gerador de sites estáticos
+- **Ruby**: Linguagem de programação para plugins Jekyll
 - **HTML5**: Estrutura semântica
 - **CSS3**: Estilos responsivos com Flexbox/Grid
-- **JavaScript ES6+**: Lógica de negócio
-- **LocalStorage API**: Armazenamento local
+- **JavaScript ES6+**: Lógica de negócio no cliente
 - **QRCode.js**: Geração de QR codes
-- **GitHub Pages**: Hospedagem gratuita
+- **GitHub Pages**: Hospedagem gratuita com build automático
+- **GitHub Actions**: CI/CD para build e deploy
 
 ## 🎨 Personalização
 
