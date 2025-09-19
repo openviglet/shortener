@@ -1,30 +1,38 @@
 class URLShortener {
     constructor() {
         this.baseUrl = window.location.origin + window.location.pathname;
-        this.storageKey = 'shortened_urls';
+        this.dataUrl = './data/urls.json';
+        this.urls = {};
         this.init();
     }
 
-    init() {
+    async init() {
+        // Check for redirect first, before loading URLs
+        const hash = window.location.hash.substring(1);
+        if (hash) {
+            await this.loadUrls();
+            this.handleRedirect();
+            return; // Don't initialize the full interface if redirecting
+        }
+        
+        // Normal initialization
+        await this.loadUrls();
         this.bindEvents();
         this.loadRecentLinks();
-        this.handleRedirect();
     }
 
     bindEvents() {
-        const shortenBtn = document.getElementById('shortenBtn');
+        const generateBtn = document.getElementById('generateBtn');
         const longUrl = document.getElementById('longUrl');
         const copyBtn = document.getElementById('copyBtn');
-        const clearDataBtn = document.getElementById('clearData');
 
-        shortenBtn.addEventListener('click', () => this.shortenUrl());
+        generateBtn.addEventListener('click', () => this.generateInstructions());
         longUrl.addEventListener('keypress', (e) => {
             if (e.key === 'Enter') {
-                this.shortenUrl();
+                this.generateInstructions();
             }
         });
         copyBtn.addEventListener('click', () => this.copyToClipboard());
-        clearDataBtn.addEventListener('click', () => this.clearAllData());
 
         // Input validation
         longUrl.addEventListener('input', () => this.validateInput());
@@ -53,6 +61,21 @@ class URLShortener {
         }
     }
 
+    async loadUrls() {
+        try {
+            const response = await fetch(this.dataUrl);
+            if (response.ok) {
+                this.urls = await response.json();
+            } else {
+                console.warn('Could not load URLs data, using empty dataset');
+                this.urls = {};
+            }
+        } catch (error) {
+            console.error('Error loading URLs:', error);
+            this.urls = {};
+        }
+    }
+
     generateShortCode() {
         const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
         let result = '';
@@ -62,9 +85,9 @@ class URLShortener {
         return result;
     }
 
-    async shortenUrl() {
+    generateInstructions() {
         const longUrlInput = document.getElementById('longUrl');
-        const shortenBtn = document.getElementById('shortenBtn');
+        const generateBtn = document.getElementById('generateBtn');
         const errorDiv = document.getElementById('error-message');
         const resultDiv = document.getElementById('result');
 
@@ -80,50 +103,30 @@ class URLShortener {
             return;
         }
 
-        // Check if URL is already shortened
+        // Check if URL already exists
         const existing = this.findExistingUrl(longUrl);
         if (existing) {
-            this.displayResult(longUrl, existing.shortCode);
+            this.displayExisting(longUrl, existing.shortCode);
             return;
         }
 
-        // Show loading state
-        shortenBtn.disabled = true;
-        shortenBtn.textContent = 'Encurtando...';
+        // Generate unique short code
+        let shortCode;
+        do {
+            shortCode = this.generateShortCode();
+        } while (this.urls[shortCode]);
+
+        // Display instructions
+        this.displayInstructions(longUrl, shortCode);
+
+        // Clear input
+        longUrlInput.value = '';
+
         errorDiv.classList.add('hidden');
-
-        try {
-            // Generate unique short code
-            let shortCode;
-            do {
-                shortCode = this.generateShortCode();
-            } while (this.getStoredUrls()[shortCode]);
-
-            // Store the mapping
-            this.storeUrl(shortCode, longUrl);
-
-            // Display result
-            this.displayResult(longUrl, shortCode);
-
-            // Clear input
-            longUrlInput.value = '';
-
-            // Update recent links
-            this.loadRecentLinks();
-
-        } catch (error) {
-            errorDiv.textContent = 'Erro ao encurtar URL. Tente novamente.';
-            errorDiv.classList.remove('hidden');
-            console.error('Error shortening URL:', error);
-        } finally {
-            shortenBtn.disabled = false;
-            shortenBtn.textContent = 'Encurtar';
-        }
     }
 
     findExistingUrl(longUrl) {
-        const urls = this.getStoredUrls();
-        for (const [shortCode, data] of Object.entries(urls)) {
+        for (const [shortCode, data] of Object.entries(this.urls)) {
             if (data.originalUrl === longUrl) {
                 return { shortCode, ...data };
             }
@@ -131,14 +134,55 @@ class URLShortener {
         return null;
     }
 
-    displayResult(originalUrl, shortCode) {
+    displayExisting(originalUrl, shortCode) {
         const shortUrl = `${this.baseUrl}#${shortCode}`;
         
         document.getElementById('originalUrl').textContent = originalUrl;
         document.getElementById('shortUrl').textContent = shortUrl;
         document.getElementById('result').classList.remove('hidden');
+        document.getElementById('instructions').classList.add('hidden');
 
-        // Generate QR code
+        // No QR code for existing URLs to keep it simple
+        document.getElementById('qrcode').innerHTML = '<p>URL já existente no repositório</p>';
+
+        // Scroll to result
+        document.getElementById('result').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    }
+
+    displayInstructions(originalUrl, shortCode) {
+        const shortUrl = `${this.baseUrl}#${shortCode}`;
+        
+        document.getElementById('originalUrl').textContent = originalUrl;
+        document.getElementById('shortUrl').textContent = shortUrl;
+        document.getElementById('result').classList.remove('hidden');
+        
+        // Show instructions for manual addition
+        const instructionsDiv = document.getElementById('instructions');
+        instructionsDiv.innerHTML = `
+            <div class="instructions-content">
+                <h4>📝 Instruções para Adicionar a URL</h4>
+                <p>Para tornar esta URL ativa, adicione a seguinte entrada ao arquivo <code>data/urls.json</code>:</p>
+                <pre><code>"${shortCode}": {
+  "originalUrl": "${originalUrl}",
+  "createdAt": "${new Date().toISOString()}",
+  "clicks": 0,
+  "createdBy": "manual"
+}</code></pre>
+                <p><strong>Passos:</strong></p>
+                <ol>
+                    <li>Edite o arquivo <code>data/urls.json</code> no repositório</li>
+                    <li>Adicione a entrada acima (não esqueça da vírgula se não for o último item)</li>
+                    <li>Faça commit das mudanças</li>
+                    <li>A URL estará ativa em alguns minutos</li>
+                </ol>
+                <a href="https://github.com/openviglet/shortener/edit/main/data/urls.json" target="_blank" class="edit-link">
+                    ✏️ Editar arquivo no GitHub
+                </a>
+            </div>
+        `;
+        instructionsDiv.classList.remove('hidden');
+
+        // Generate QR code for the potential URL
         this.generateQRCode(shortUrl);
 
         // Scroll to result
@@ -208,36 +252,16 @@ class URLShortener {
         });
     }
 
-    storeUrl(shortCode, originalUrl) {
-        const urls = this.getStoredUrls();
-        urls[shortCode] = {
-            originalUrl,
-            createdAt: new Date().toISOString(),
-            clicks: 0
-        };
-        localStorage.setItem(this.storageKey, JSON.stringify(urls));
-    }
-
-    getStoredUrls() {
-        try {
-            return JSON.parse(localStorage.getItem(this.storageKey)) || {};
-        } catch (error) {
-            console.error('Error reading from localStorage:', error);
-            return {};
-        }
-    }
-
     loadRecentLinks() {
-        const urls = this.getStoredUrls();
         const recentLinksDiv = document.getElementById('recentLinks');
 
-        if (Object.keys(urls).length === 0) {
-            recentLinksDiv.innerHTML = '<p class="no-links">Nenhuma URL encurtada ainda.</p>';
+        if (Object.keys(this.urls).length === 0) {
+            recentLinksDiv.innerHTML = '<p class="no-links">Nenhuma URL encurtada ainda. URLs são adicionadas manualmente via commits no repositório.</p>';
             return;
         }
 
         // Sort by creation date (newest first)
-        const sortedUrls = Object.entries(urls).sort((a, b) => 
+        const sortedUrls = Object.entries(this.urls).sort((a, b) => 
             new Date(b[1].createdAt) - new Date(a[1].createdAt)
         );
 
@@ -250,11 +274,10 @@ class URLShortener {
                     <div class="link-info">
                         <div class="link-short">${shortUrl}</div>
                         <div class="link-original">${data.originalUrl}</div>
-                        <small>Criado em: ${createdDate} • Cliques: ${data.clicks}</small>
+                        <small>Criado em: ${createdDate} • Cliques: ${data.clicks} • Por: ${data.createdBy || 'unknown'}</small>
                     </div>
                     <div class="link-actions">
                         <button onclick="urlShortener.copyLink('${shortUrl}')">Copiar</button>
-                        <button onclick="urlShortener.deleteLink('${shortCode}')" class="delete-btn">Excluir</button>
                     </div>
                 </div>
             `;
@@ -270,34 +293,14 @@ class URLShortener {
         });
     }
 
-    deleteLink(shortCode) {
-        if (confirm('Tem certeza que deseja excluir este link encurtado?')) {
-            const urls = this.getStoredUrls();
-            delete urls[shortCode];
-            localStorage.setItem(this.storageKey, JSON.stringify(urls));
-            this.loadRecentLinks();
-        }
-    }
-
-    clearAllData() {
-        if (confirm('Tem certeza que deseja limpar todos os dados? Esta ação não pode ser desfeita.')) {
-            localStorage.removeItem(this.storageKey);
-            this.loadRecentLinks();
-            document.getElementById('result').classList.add('hidden');
-        }
-    }
-
     handleRedirect() {
         const hash = window.location.hash.substring(1);
         if (hash) {
-            const urls = this.getStoredUrls();
-            const urlData = urls[hash];
+            const urlData = this.urls[hash];
             
             if (urlData) {
-                // Increment click count
-                urlData.clicks++;
-                urls[hash] = urlData;
-                localStorage.setItem(this.storageKey, JSON.stringify(urls));
+                // Note: We can't increment click count since we can't write back to the repository
+                // This would require a server-side component or manual updates
                 
                 // Show redirect message and redirect
                 this.showRedirectMessage(urlData.originalUrl);
@@ -305,7 +308,7 @@ class URLShortener {
                     window.location.href = urlData.originalUrl;
                 }, 3000);
             } else {
-                this.showErrorMessage('Link encurtado não encontrado ou expirado.');
+                this.showErrorMessage('Link encurtado não encontrado ou ainda não foi adicionado ao repositório.');
             }
         }
     }
@@ -330,7 +333,9 @@ class URLShortener {
                 <div style="text-align: center; padding: 50px 20px;">
                     <h1>❌ Erro</h1>
                     <p style="margin: 20px 0; color: #c33;">${message}</p>
-                    <a href="${this.baseUrl}" style="display: inline-block; margin-top: 20px; padding: 10px 20px; background: #667eea; color: white; text-decoration: none; border-radius: 5px;">Voltar ao início</a>
+                    <p style="margin: 20px 0;">Para adicionar novas URLs, edite o arquivo <code>data/urls.json</code> no repositório.</p>
+                    <a href="${this.baseUrl}" style="display: inline-block; margin: 10px; padding: 10px 20px; background: #667eea; color: white; text-decoration: none; border-radius: 5px;">Voltar ao início</a>
+                    <a href="https://github.com/openviglet/shortener/edit/main/data/urls.json" target="_blank" style="display: inline-block; margin: 10px; padding: 10px 20px; background: #28a745; color: white; text-decoration: none; border-radius: 5px;">Editar URLs</a>
                 </div>
             </div>
         `;
@@ -339,7 +344,7 @@ class URLShortener {
 
 // Initialize the URL shortener when the page loads
 let urlShortener;
-document.addEventListener('DOMContentLoaded', () => {
+document.addEventListener('DOMContentLoaded', async () => {
     urlShortener = new URLShortener();
 });
 

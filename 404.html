@@ -24,41 +24,39 @@
         
         if (path) {
             // Try to redirect using the path as short code
-            const storageKey = 'shortened_urls';
-            try {
-                const urls = JSON.parse(localStorage.getItem(storageKey)) || {};
-                const urlData = urls[path];
-                
-                if (urlData) {
-                    // Increment click count
-                    urlData.clicks++;
-                    urls[path] = urlData;
-                    localStorage.setItem(storageKey, JSON.stringify(urls));
+            fetch('./data/urls.json')
+                .then(response => response.json())
+                .then(urls => {
+                    const urlData = urls[path];
                     
-                    // Show redirect message and redirect
+                    if (urlData) {
+                        // Show redirect message and redirect
+                        document.getElementById('redirect-content').innerHTML = `
+                            <p style="margin: 20px 0;">Você será redirecionado para:</p>
+                            <p style="word-break: break-all; background: #f8f9fa; padding: 15px; border-radius: 5px; font-family: monospace;">${urlData.originalUrl}</p>
+                            <p style="margin-top: 20px; color: #666;">Redirecionamento automático em 3 segundos...</p>
+                            <a href="${urlData.originalUrl}" style="display: inline-block; margin-top: 20px; padding: 10px 20px; background: #667eea; color: white; text-decoration: none; border-radius: 5px;">Ir agora</a>
+                        `;
+                        
+                        setTimeout(() => {
+                            window.location.href = urlData.originalUrl;
+                        }, 3000);
+                    } else {
+                        // Short code not found
+                        document.getElementById('redirect-content').innerHTML = `
+                            <p style="color: #c33;">Código não encontrado ou ainda não adicionado ao repositório.</p>
+                            <p style="margin: 20px 0;">Para adicionar novas URLs, edite o arquivo <code>data/urls.json</code>.</p>
+                            <a href="/" style="display: inline-block; margin: 10px; padding: 10px 20px; background: #667eea; color: white; text-decoration: none; border-radius: 5px;">Voltar ao início</a>
+                            <a href="https://github.com/openviglet/shortener/edit/main/data/urls.json" target="_blank" style="display: inline-block; margin: 10px; padding: 10px 20px; background: #28a745; color: white; text-decoration: none; border-radius: 5px;">Editar URLs</a>
+                        `;
+                    }
+                })
+                .catch(error => {
                     document.getElementById('redirect-content').innerHTML = `
-                        <p style="margin: 20px 0;">Você será redirecionado para:</p>
-                        <p style="word-break: break-all; background: #f8f9fa; padding: 15px; border-radius: 5px; font-family: monospace;">${urlData.originalUrl}</p>
-                        <p style="margin-top: 20px; color: #666;">Redirecionamento automático em 3 segundos...</p>
-                        <a href="${urlData.originalUrl}" style="display: inline-block; margin-top: 20px; padding: 10px 20px; background: #667eea; color: white; text-decoration: none; border-radius: 5px;">Ir agora</a>
-                    `;
-                    
-                    setTimeout(() => {
-                        window.location.href = urlData.originalUrl;
-                    }, 3000);
-                } else {
-                    // Short code not found
-                    document.getElementById('redirect-content').innerHTML = `
-                        <p style="color: #c33;">Link encurtado não encontrado ou expirado.</p>
+                        <p style="color: #c33;">Erro ao carregar dados de URLs.</p>
                         <a href="/" style="display: inline-block; margin-top: 20px; padding: 10px 20px; background: #667eea; color: white; text-decoration: none; border-radius: 5px;">Voltar ao início</a>
                     `;
-                }
-            } catch (error) {
-                document.getElementById('redirect-content').innerHTML = `
-                    <p style="color: #c33;">Erro ao processar redirecionamento.</p>
-                    <a href="/" style="display: inline-block; margin-top: 20px; padding: 10px 20px; background: #667eea; color: white; text-decoration: none; border-radius: 5px;">Voltar ao início</a>
-                `;
-            }
+                });
         } else {
             // No path, redirect to main page
             window.location.href = '/';
