@@ -1,8 +1,8 @@
 # GitHub Pages configuration for URL Shortener
 title: "Encurtador de URL - OpenViglet"
 description: "Um encurtador de URL simples e gratuito que funciona no GitHub Pages"
-url: "https://openviglet.github.io"
-baseurl: "/shortener"
+url: "https://s.viglet.org"
+baseurl: "/"
 
 # Jekyll settings
 markdown: kramdown
