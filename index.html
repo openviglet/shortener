@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Encurtador de URL - OpenViglet</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🔗 Encurtador de URL</h1>
+            <p>Gere instruções para adicionar URLs encurtadas via commits no repositório</p>
+        </header>
+
+        <main>
+            <div class="input-section">
+                <div class="input-group">
+                    <input type="url" id="longUrl" placeholder="Cole sua URL longa aqui..." required>
+                    <button id="generateBtn">Gerar Instruções</button>
+                </div>
+                <div id="error-message" class="error hidden"></div>
+            </div>
+
+            <div class="result-section">
+                <div id="result" class="result hidden">
+                    <div class="result-item">
+                        <label>URL Original:</label>
+                        <div id="originalUrl" class="url-display"></div>
+                    </div>
+                    <div class="result-item">
+                        <label>URL Encurtada:</label>
+                        <div class="shortened-url">
+                            <span id="shortUrl" class="url-display"></span>
+                            <button id="copyBtn" class="copy-btn" title="Copiar">📋</button>
+                        </div>
+                    </div>
+                    <div class="result-item">
+                        <label>QR Code:</label>
+                        <div id="qrcode"></div>
+                    </div>
+                </div>
+                
+                <div id="instructions" class="instructions hidden">
+                    <!-- Instructions will be populated by JavaScript -->
+                </div>
+            </div>
+
+            <div class="info-section">
+                <div class="info-box">
+                    <h3>📝 Como Funciona</h3>
+                    <p>Este encurtador de URL usa persistência baseada em repositório:</p>
+                    <ul>
+                        <li><strong>Gere instruções:</strong> Insira uma URL e obtenha instruções para adicioná-la</li>
+                        <li><strong>Edite o repositório:</strong> Adicione a URL ao arquivo <code>data/urls.json</code></li>
+                        <li><strong>Faça commit:</strong> As mudanças tornam a URL ativa automaticamente</li>
+                        <li><strong>URLs permanentes:</strong> URLs ficam salvas no repositório para sempre</li>
+                    </ul>
+                    <a href="https://github.com/openviglet/shortener/edit/main/data/urls.json" target="_blank" class="edit-button">
+                        ✏️ Editar URLs no GitHub
+                    </a>
+                </div>
+            </div>
+
+            <div class="links-section">
+                <h3>URLs Encurtadas Ativas</h3>
+                <div id="recentLinks" class="recent-links">
+                    <p class="no-links">Carregando URLs...</p>
+                </div>
+            </div>
+        </main>
+
+        <footer>
+            <p>&copy; 2024 OpenViglet. Licenciado sob Apache 2.0</p>
+            <p>
+                <a href="https://github.com/openviglet/shortener" target="_blank">GitHub</a> |
+                <a href="https://github.com/openviglet/shortener/edit/main/data/urls.json" target="_blank">Editar URLs</a> |
+                <a href="./data/" target="_blank">Ver Dados</a>
+            </p>
+        </footer>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.3/build/qrcode.min.js"></script>
+    <script src="script.js"></script>
+</body>
+</html>

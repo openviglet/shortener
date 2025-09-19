@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Redirecionamento - Encurtador de URL</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="container">
+        <div style="text-align: center; padding: 50px 20px;">
+            <h1>🔗 Encurtador de URL</h1>
+            <p>Processando redirecionamento...</p>
+            <div id="redirect-content">
+                <p>Carregando...</p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // This page handles redirects for GitHub Pages
+        // GitHub Pages serves this 404.html for any unknown path
+        const path = window.location.pathname.substring(1); // Remove leading slash
+        
+        if (path) {
+            // Try to redirect using the path as short code
+            fetch('./data/urls.json')
+                .then(response => response.json())
+                .then(urls => {
+                    const urlData = urls[path];
+                    
+                    if (urlData) {
+                        // Show redirect message and redirect
+                        document.getElementById('redirect-content').innerHTML = `
+                            <p style="margin: 20px 0;">Você será redirecionado para:</p>
+                            <p style="word-break: break-all; background: #f8f9fa; padding: 15px; border-radius: 5px; font-family: monospace;">${urlData.originalUrl}</p>
+                            <p style="margin-top: 20px; color: #666;">Redirecionamento automático em 3 segundos...</p>
+                            <a href="${urlData.originalUrl}" style="display: inline-block; margin-top: 20px; padding: 10px 20px; background: #667eea; color: white; text-decoration: none; border-radius: 5px;">Ir agora</a>
+                        `;
+                        
+                        setTimeout(() => {
+                            window.location.href = urlData.originalUrl;
+                        }, 3000);
+                    } else {
+                        // Short code not found
+                        document.getElementById('redirect-content').innerHTML = `
+                            <p style="color: #c33;">Código não encontrado ou ainda não adicionado ao repositório.</p>
+                            <p style="margin: 20px 0;">Para adicionar novas URLs, edite o arquivo <code>data/urls.json</code>.</p>
+                            <a href="/" style="display: inline-block; margin: 10px; padding: 10px 20px; background: #667eea; color: white; text-decoration: none; border-radius: 5px;">Voltar ao início</a>
+                            <a href="https://github.com/openviglet/shortener/edit/main/data/urls.json" target="_blank" style="display: inline-block; margin: 10px; padding: 10px 20px; background: #28a745; color: white; text-decoration: none; border-radius: 5px;">Editar URLs</a>
+                        `;
+                    }
+                })
+                .catch(error => {
+                    document.getElementById('redirect-content').innerHTML = `
+                        <p style="color: #c33;">Erro ao carregar dados de URLs.</p>
+                        <a href="/" style="display: inline-block; margin-top: 20px; padding: 10px 20px; background: #667eea; color: white; text-decoration: none; border-radius: 5px;">Voltar ao início</a>
+                    `;
+                });
+        } else {
+            // No path, redirect to main page
+            window.location.href = '/';
+        }
+    </script>
+</body>
+</html>

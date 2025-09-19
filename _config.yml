@@ -1,0 +1,34 @@
+# GitHub Pages configuration for URL Shortener
+title: "Encurtador de URL - OpenViglet"
+description: "Um encurtador de URL simples e gratuito que funciona no GitHub Pages"
+url: "https://openviglet.github.io"
+baseurl: "/shortener"
+
+# Jekyll settings
+markdown: kramdown
+highlighter: rouge
+theme: minima
+
+# Exclude files from processing
+exclude:
+  - README.md
+  - LICENSE
+  - .gitignore
+  - .git/
+
+# Include files that start with dot or underscore
+include:
+  - .htaccess
+  - _pages
+
+# Plugins
+plugins:
+  - jekyll-sitemap
+  - jekyll-feed
+
+# Default front matter
+defaults:
+  - scope:
+      path: ""
+    values:
+      layout: "default"
