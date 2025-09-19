@@ -299,14 +299,7 @@ class URLShortener {
             const urlData = this.urls[hash];
             
             if (urlData) {
-                // Note: We can't increment click count since we can't write back to the repository
-                // This would require a server-side component or manual updates
-                
-                // Show redirect message and redirect
-                this.showRedirectMessage(urlData.originalUrl);
-                setTimeout(() => {
-                    window.location.href = urlData.originalUrl;
-                }, 3000);
+                window.location.href = urlData.originalUrl;
             } else {
                 this.showErrorMessage('Link encurtado não encontrado ou ainda não foi adicionado ao repositório.');
             }
