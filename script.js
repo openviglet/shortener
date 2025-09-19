@@ -14,7 +14,7 @@ class URLShortener {
             this.handleRedirect();
             return; // Don't initialize the full interface if redirecting
         }
-        
+
         // Normal initialization
         await this.loadUrls();
         this.bindEvents();
@@ -41,9 +41,9 @@ class URLShortener {
     validateInput() {
         const longUrl = document.getElementById('longUrl');
         const errorDiv = document.getElementById('error-message');
-        
+
         if (longUrl.value && !this.isValidUrl(longUrl.value)) {
-            errorDiv.textContent = 'Por favor, insira uma URL válida (deve começar com http:// ou https://)';
+            errorDiv.textContent = 'Please enter a valid URL (must start with http:// or https://)';
             errorDiv.classList.remove('hidden');
             return false;
         } else {
@@ -94,7 +94,7 @@ class URLShortener {
         const longUrl = longUrlInput.value.trim();
 
         if (!longUrl) {
-            errorDiv.textContent = 'Por favor, insira uma URL';
+            errorDiv.textContent = 'Please enter a URL';
             errorDiv.classList.remove('hidden');
             return;
         }
@@ -136,14 +136,14 @@ class URLShortener {
 
     displayExisting(originalUrl, shortCode) {
         const shortUrl = `${this.baseUrl}#${shortCode}`;
-        
+
         document.getElementById('originalUrl').textContent = originalUrl;
         document.getElementById('shortUrl').textContent = shortUrl;
         document.getElementById('result').classList.remove('hidden');
         document.getElementById('instructions').classList.add('hidden');
 
         // No QR code for existing URLs to keep it simple
-        document.getElementById('qrcode').innerHTML = '<p>URL já existente no repositório</p>';
+        document.getElementById('qrcode').innerHTML = '<p>URL already exists in the repository</p>';
 
         // Scroll to result
         document.getElementById('result').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
@@ -151,32 +151,32 @@ class URLShortener {
 
     displayInstructions(originalUrl, shortCode) {
         const shortUrl = `${this.baseUrl}#${shortCode}`;
-        
+
         document.getElementById('originalUrl').textContent = originalUrl;
         document.getElementById('shortUrl').textContent = shortUrl;
         document.getElementById('result').classList.remove('hidden');
-        
+
         // Show instructions for manual addition
         const instructionsDiv = document.getElementById('instructions');
         instructionsDiv.innerHTML = `
             <div class="instructions-content">
-                <h4>📝 Instruções para Adicionar a URL</h4>
-                <p>Para tornar esta URL ativa, adicione a seguinte entrada ao arquivo <code>data/urls.json</code>:</p>
+                <h4>📝 Instructions to Add the URL</h4>
+                <p>To activate this URL, add the following entry to the <code>data/urls.json</code> file:</p>
                 <pre><code>"${shortCode}": {
   "originalUrl": "${originalUrl}",
   "createdAt": "${new Date().toISOString()}",
   "clicks": 0,
   "createdBy": "manual"
 }</code></pre>
-                <p><strong>Passos:</strong></p>
+                <p><strong>Steps:</strong></p>
                 <ol>
-                    <li>Edite o arquivo <code>data/urls.json</code> no repositório</li>
-                    <li>Adicione a entrada acima (não esqueça da vírgula se não for o último item)</li>
-                    <li>Faça commit das mudanças</li>
-                    <li>A URL estará ativa em alguns minutos</li>
+                    <li>Edit the <code>data/urls.json</code> file in the repository</li>
+                    <li>Add the entry above (don't forget the comma if it's not the last item)</li>
+                    <li>Commit the changes</li>
+                    <li>The URL will be active in a few minutes</li>
                 </ol>
                 <a href="https://github.com/openviglet/shortener/edit/main/data/urls.json" target="_blank" class="edit-link">
-                    ✏️ Editar arquivo no GitHub
+                    ✏️ Edit file on GitHub
                 </a>
             </div>
         `;
@@ -211,11 +211,11 @@ class URLShortener {
         } catch (error) {
             // Another fallback: show a link to generate QR code manually
             qrDiv.innerHTML = `
-                <p style="margin-bottom: 10px;">QR Code não disponível</p>
+                <p style="margin-bottom: 10px;">QR Code not available</p>
                 <a href="https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(url)}" 
                    target="_blank" 
                    style="color: #667eea; text-decoration: underline;">
-                   Gerar QR Code
+                   Generate QR Code
                 </a>
             `;
             console.error('Error generating QR code:', error);
@@ -230,7 +230,7 @@ class URLShortener {
             const originalText = copyBtn.textContent;
             copyBtn.textContent = '✓';
             copyBtn.classList.add('copied');
-            
+
             setTimeout(() => {
                 copyBtn.textContent = originalText;
                 copyBtn.classList.remove('copied');
@@ -244,7 +244,7 @@ class URLShortener {
             textArea.select();
             document.execCommand('copy');
             document.body.removeChild(textArea);
-            
+
             copyBtn.textContent = '✓';
             setTimeout(() => {
                 copyBtn.textContent = '📋';
@@ -256,28 +256,28 @@ class URLShortener {
         const recentLinksDiv = document.getElementById('recentLinks');
 
         if (Object.keys(this.urls).length === 0) {
-            recentLinksDiv.innerHTML = '<p class="no-links">Nenhuma URL encurtada ainda. URLs são adicionadas manualmente via commits no repositório.</p>';
+            recentLinksDiv.innerHTML = '<p class="no-links">No shortened URLs yet. URLs are added manually via commits in the repository.</p>';
             return;
         }
 
         // Sort by creation date (newest first)
-        const sortedUrls = Object.entries(this.urls).sort((a, b) => 
+        const sortedUrls = Object.entries(this.urls).sort((a, b) =>
             new Date(b[1].createdAt) - new Date(a[1].createdAt)
         );
 
         const linksHtml = sortedUrls.map(([shortCode, data]) => {
             const shortUrl = `${this.baseUrl}#${shortCode}`;
-            const createdDate = new Date(data.createdAt).toLocaleDateString('pt-BR');
-            
+            const createdDate = new Date(data.createdAt).toLocaleDateString('en-US');
+
             return `
                 <div class="link-item">
                     <div class="link-info">
                         <div class="link-short">${shortUrl}</div>
                         <div class="link-original">${data.originalUrl}</div>
-                        <small>Criado em: ${createdDate} • Cliques: ${data.clicks} • Por: ${data.createdBy || 'unknown'}</small>
+                        <small>Created on: ${createdDate} • Clicks: ${data.clicks} • By: ${data.createdBy || 'unknown'}</small>
                     </div>
                     <div class="link-actions">
-                        <button onclick="urlShortener.copyLink('${shortUrl}')">Copiar</button>
+                        <button onclick="urlShortener.copyLink('${shortUrl}')">Copy</button>
                     </div>
                 </div>
             `;
@@ -297,11 +297,12 @@ class URLShortener {
         const hash = window.location.hash.substring(1);
         if (hash) {
             const urlData = this.urls[hash];
-            
+
             if (urlData) {
+                this.showRedirectMessage(urlData.originalUrl);
                 window.location.href = urlData.originalUrl;
             } else {
-                this.showErrorMessage('Link encurtado não encontrado ou ainda não foi adicionado ao repositório.');
+                this.showErrorMessage('Shortened link not found or has not yet been added to the repository.');
             }
         }
     }
@@ -310,11 +311,7 @@ class URLShortener {
         document.body.innerHTML = `
             <div class="container">
                 <div style="text-align: center; padding: 50px 20px;">
-                    <h1>🔗 Redirecionando...</h1>
-                    <p style="margin: 20px 0;">Você será redirecionado para:</p>
-                    <p style="word-break: break-all; background: #f8f9fa; padding: 15px; border-radius: 5px; font-family: monospace;">${originalUrl}</p>
-                    <p style="margin-top: 20px; color: #666;">Redirecionamento automático em 3 segundos...</p>
-                    <a href="${originalUrl}" style="display: inline-block; margin-top: 20px; padding: 10px 20px; background: #667eea; color: white; text-decoration: none; border-radius: 5px;">Ir agora</a>
+                    <h1>Redirecting...</h1>                  
                 </div>
             </div>
         `;
@@ -324,11 +321,11 @@ class URLShortener {
         document.body.innerHTML = `
             <div class="container">
                 <div style="text-align: center; padding: 50px 20px;">
-                    <h1>❌ Erro</h1>
+                    <h1>❌ Error</h1>
                     <p style="margin: 20px 0; color: #c33;">${message}</p>
-                    <p style="margin: 20px 0;">Para adicionar novas URLs, edite o arquivo <code>data/urls.json</code> no repositório.</p>
-                    <a href="${this.baseUrl}" style="display: inline-block; margin: 10px; padding: 10px 20px; background: #667eea; color: white; text-decoration: none; border-radius: 5px;">Voltar ao início</a>
-                    <a href="https://github.com/openviglet/shortener/edit/main/data/urls.json" target="_blank" style="display: inline-block; margin: 10px; padding: 10px 20px; background: #28a745; color: white; text-decoration: none; border-radius: 5px;">Editar URLs</a>
+                    <p style="margin: 20px 0;">To add new URLs, edit the <code>data/urls.json</code> file in the repository.</p>
+                    <a href="${this.baseUrl}" style="display: inline-block; margin: 10px; padding: 10px 20px; background: #667eea; color: white; text-decoration: none; border-radius: 5px;">Back to Home</a>
+                    <a href="https://github.com/openviglet/shortener/edit/main/data/urls.json" target="_blank" style="display: inline-block; margin: 10px; padding: 10px 20px; background: #28a745; color: white; text-decoration: none; border-radius: 5px;">Edit URLs</a>
                 </div>
             </div>
         `;
