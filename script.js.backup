@@ -1,20 +1,13 @@
 class URLShortener {
     constructor() {
-        this.baseUrl = window.location.origin + window.location.pathname;
-        this.dataUrl = './data/urls.json';
+        this.baseUrl = window.location.origin + '{{ site.baseurl }}';
+        this.dataUrl = '{{ "/data/urls.json" | relative_url }}';
         this.urls = {};
         this.init();
     }
 
     async init() {
-        // Check for redirect first, before loading URLs
-        const hash = window.location.hash.substring(1);
-        if (hash) {
-            await this.loadUrls();
-            this.handleRedirect();
-            return; // Don't initialize the full interface if redirecting
-        }
-        
+        // No need to check for redirect here since Jekyll handles it server-side
         // Normal initialization
         await this.loadUrls();
         this.bindEvents();
@@ -135,7 +128,7 @@ class URLShortener {
     }
 
     displayExisting(originalUrl, shortCode) {
-        const shortUrl = `${this.baseUrl}#${shortCode}`;
+        const shortUrl = `${this.baseUrl}/${shortCode}`;
         
         document.getElementById('originalUrl').textContent = originalUrl;
         document.getElementById('shortUrl').textContent = shortUrl;
@@ -150,7 +143,7 @@ class URLShortener {
     }
 
     displayInstructions(originalUrl, shortCode) {
-        const shortUrl = `${this.baseUrl}#${shortCode}`;
+        const shortUrl = `${this.baseUrl}/${shortCode}`;
         
         document.getElementById('originalUrl').textContent = originalUrl;
         document.getElementById('shortUrl').textContent = shortUrl;
@@ -173,7 +166,7 @@ class URLShortener {
                     <li>Edite o arquivo <code>data/urls.json</code> no repositório</li>
                     <li>Adicione a entrada acima (não esqueça da vírgula se não for o último item)</li>
                     <li>Faça commit das mudanças</li>
-                    <li>A URL estará ativa em alguns minutos</li>
+                    <li>A URL estará ativa em alguns minutos após o build do Jekyll</li>
                 </ol>
                 <a href="https://github.com/openviglet/shortener/edit/main/data/urls.json" target="_blank" class="edit-link">
                     ✏️ Editar arquivo no GitHub
@@ -266,7 +259,7 @@ class URLShortener {
         );
 
         const linksHtml = sortedUrls.map(([shortCode, data]) => {
-            const shortUrl = `${this.baseUrl}#${shortCode}`;
+            const shortUrl = `${this.baseUrl}/${shortCode}`;
             const createdDate = new Date(data.createdAt).toLocaleDateString('pt-BR');
             
             return `
@@ -293,39 +286,7 @@ class URLShortener {
         });
     }
 
-    handleRedirect() {
-        const hash = window.location.hash.substring(1);
-        if (hash) {
-            const urlData = this.urls[hash];
-            
-            if (urlData) {
-                // Note: We can't increment click count since we can't write back to the repository
-                // This would require a server-side component or manual updates
-                
-                // Show redirect message and redirect
-                this.showRedirectMessage(urlData.originalUrl);
-                setTimeout(() => {
-                    window.location.href = urlData.originalUrl;
-                }, 3000);
-            } else {
-                this.showErrorMessage('Link encurtado não encontrado ou ainda não foi adicionado ao repositório.');
-            }
-        }
-    }
-
-    showRedirectMessage(originalUrl) {
-        document.body.innerHTML = `
-            <div class="container">
-                <div style="text-align: center; padding: 50px 20px;">
-                    <h1>🔗 Redirecionando...</h1>
-                    <p style="margin: 20px 0;">Você será redirecionado para:</p>
-                    <p style="word-break: break-all; background: #f8f9fa; padding: 15px; border-radius: 5px; font-family: monospace;">${originalUrl}</p>
-                    <p style="margin-top: 20px; color: #666;">Redirecionamento automático em 3 segundos...</p>
-                    <a href="${originalUrl}" style="display: inline-block; margin-top: 20px; padding: 10px 20px; background: #667eea; color: white; text-decoration: none; border-radius: 5px;">Ir agora</a>
-                </div>
-            </div>
-        `;
-    }
+    // Removed handleRedirect and showRedirectMessage methods since Jekyll handles redirects server-side
 
     showErrorMessage(message) {
         document.body.innerHTML = `
@@ -346,11 +307,4 @@ class URLShortener {
 let urlShortener;
 document.addEventListener('DOMContentLoaded', async () => {
     urlShortener = new URLShortener();
-});
-
-// Handle browser back/forward navigation
-window.addEventListener('hashchange', () => {
-    if (!window.location.hash) {
-        location.reload();
-    }
 });

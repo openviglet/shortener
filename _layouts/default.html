@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% if page.title %}{{ page.title }} - {% endif %}{{ site.title }}</title>
+    <link rel="stylesheet" href="{{ '/styles.css' | relative_url }}">
+    {% if page.redirect_to %}
+    <meta http-equiv="refresh" content="0; url={{ page.redirect_to }}">
+    <link rel="canonical" href="{{ page.redirect_to }}">
+    {% endif %}
+</head>
+<body>
+    {{ content }}
+    
+    {% unless page.redirect_to %}
+    <script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.3/build/qrcode.min.js"></script>
+    <script src="{{ '/assets/js/script.js' | relative_url }}"></script>
+    {% endunless %}
+</body>
+</html>
